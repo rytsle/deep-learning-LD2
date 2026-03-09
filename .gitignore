@@ -3,7 +3,7 @@ __pycache__/
 *.py[cod]
 venv/
 .env
-
+.venv/
 # Mac stuff
 .DS_Store
 
@@ -12,3 +12,5 @@ LD2_dataset/
 model_params/
 *.pth
 *.pkl
+variantai/
+visualizations/
