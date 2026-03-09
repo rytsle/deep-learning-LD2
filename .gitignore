@@ -1,0 +1,14 @@
+# Python stuff
+__pycache__/
+*.py[cod]
+venv/
+.env
+
+# Mac stuff
+.DS_Store
+
+# Data & Models (IMPORTANT: Don't upload 70k images or heavy weights!)
+LD2_dataset/
+model_params/
+*.pth
+*.pkl
