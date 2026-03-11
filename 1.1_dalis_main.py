@@ -27,7 +27,7 @@ def main():
 
     # Model parameters
     num_classes = 3
-    epochs = 10
+    epochs = 20
     
     device = torch.device('mps' if torch.backends.mps.is_available() else 'cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Using device: {device}")
