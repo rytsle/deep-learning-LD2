@@ -166,12 +166,9 @@ def train_model(model, model_name, train_df, val_df, img_dir='LD2_dataset/images
 
 
 
-def test_model(model, model_name, metrics_save_dir, plots_save_dir, test_df, img_dir='LD2_dataset/images', device=None, batch_size=32):
+def test_model(model, model_name, metrics_save_dir=None, plots_save_dir=None, test_df=None, img_dir='LD2_dataset/images', device=None, batch_size=32):
     if device is None:
         device = torch.device('mps' if torch.backends.mps.is_available() else 'cuda' if torch.cuda.is_available() else 'cpu')
-        
-    os.makedirs(metrics_save_dir, exist_ok=True)
-    os.makedirs(plots_save_dir, exist_ok=True)
     
     transform_test = transforms.Compose([
         transforms.Resize((28, 28)),
@@ -215,23 +212,24 @@ def test_model(model, model_name, metrics_save_dir, plots_save_dir, test_df, img
         'classification_report': class_report
     }
     
-    # Output metrics to dictionary
-    metrics_path = os.path.join(metrics_save_dir, f"{model_name}_metrics.json")
-    with open(metrics_path, 'w') as f:
-        json.dump(metrics, f, indent=4)
+    if metrics_save_dir is not None:
+        metrics_path = os.path.join(metrics_save_dir, f"{model_name}_metrics.json")
+        with open(metrics_path, 'w') as f:
+            json.dump(metrics, f, indent=4)
         
     # Create the confusion matrix and save as PNG
-    cm = confusion_matrix(all_labels, all_preds)
-    plt.figure(figsize=(8, 6))
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
-    plt.title(f'Confusion Matrix - {model_name}')
-    plt.ylabel('True Label')
-    plt.xlabel('Predicted Label')
-    plt.tight_layout()
-    
-    cm_plot_path = os.path.join(plots_save_dir, f"{model_name}_confusion_matrix.png")
-    plt.savefig(cm_plot_path, dpi=150)
-    plt.close()
+    if plots_save_dir is not None:
+        cm = confusion_matrix(all_labels, all_preds)
+        plt.figure(figsize=(8, 6))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+        plt.title(f'Confusion Matrix - {model_name}')
+        plt.ylabel('True Label')
+        plt.xlabel('Predicted Label')
+        plt.tight_layout()
+        
+        cm_plot_path = os.path.join(plots_save_dir, f"{model_name}_confusion_matrix.png")
+        plt.savefig(cm_plot_path, dpi=150)
+        plt.close()
     
     return metrics
 
@@ -253,3 +251,4 @@ def load_trained_model(model_class, weights_path, num_classes=3, device=None):
     
     print(f"Model {model_class.__name__} loaded successfully from {weights_path}")
     return model
+

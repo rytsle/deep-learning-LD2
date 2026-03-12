@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 import torch
 
-from helpers_1_dalis.architekturos import KetvirtaArchitektura, PenktaArchitektura, AstuntaArchitektura
+from helpers_1_dalis.architekturos import KetvirtaArchitektura, PenktaArchitektura, AstuntaArchitektura, IndividualiArchitektura
 from helpers_1_dalis.train_evaluate import train_model, test_model, load_trained_model
 from helpers_1_dalis.visualize import visualize_history
 
@@ -35,7 +35,8 @@ def main():
     models_to_run = [
         (KetvirtaArchitektura, "KetvirtaArchitektura"),
         (PenktaArchitektura, "PenktaArchitektura"),
-        (AstuntaArchitektura, "AstuntaArchitektura")
+        (AstuntaArchitektura, "AstuntaArchitektura"),
+        (IndividualiArchitektura, "IndividualiArchitektura")
     ]
     
     os.makedirs('model_params', exist_ok=True)
