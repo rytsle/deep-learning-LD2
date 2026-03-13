@@ -38,7 +38,7 @@ class DataFrameDataset(Dataset):
             
         return image, label
 
-def train_model(model, model_name, train_df, val_df, img_dir='LD2_dataset/images', epochs=10, batch_size=32, lr=0.001, device=None):
+def train_model(model, model_name, train_df, val_df, img_dir='LD2_dataset/images', epochs=10, batch_size=32, lr=0.001, device=None, save_history=True):
     if device is None:
         device = torch.device('mps')
     print(f"Using device: {device}")
@@ -143,8 +143,11 @@ def train_model(model, model_name, train_df, val_df, img_dir='LD2_dataset/images
 
         if epoch_val_f1 > best_val_f1:
             best_val_f1 = epoch_val_f1
-            torch.save(model.state_dict(), best_weights_path)
-            saved_msg = f" -> Saved new best weights to {best_weights_path} (Val F1: {epoch_val_f1:.4f})"
+            if save_history:
+                torch.save(model.state_dict(), best_weights_path)
+                saved_msg = f" -> Saved new best weights to {best_weights_path} (Val F1: {epoch_val_f1:.4f})"
+            else:
+                saved_msg = ""
             best_epoch = epoch + 1
         else:
             saved_msg = ""
@@ -159,9 +162,9 @@ def train_model(model, model_name, train_df, val_df, img_dir='LD2_dataset/images
         print(f"Train Loss: {epoch_train_loss:.4f} | Acc: {epoch_train_acc:.4f} | F1 Macro: {epoch_train_f1:.4f}")
         print(f"Val Loss: {epoch_val_loss:.4f} | Acc: {epoch_val_acc:.4f} | F1 Macro: {epoch_val_f1:.4f}{saved_msg}\n")
         
-
-    with open(f'{history_path}', 'w') as f:
-        json.dump(history, f, indent=4)
+    if save_history:
+        with open(f'{history_path}', 'w') as f:
+            json.dump(history, f, indent=4)
     return model, history
 
 

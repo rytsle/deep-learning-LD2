@@ -5,25 +5,42 @@ import torch
 from sklearn.model_selection import KFold
 
 from helpers_1_dalis.architekturos import IndividualiArchitektura
-from helpers_1_dalis.train_evaluate import load_trained_model, test_model
+from helpers_1_dalis.train_evaluate import train_model, test_model
 
-TARGET_F1 = 0.85
+TARGET_F1 = 0.91
 MAX_ITERATIONS = 10
 N_SPLITS = 5
 
 
-def evaluate_slice(model, labels_data, fraction, device):
-    """KFold evaluation on labels_data.iloc[:int(n*fraction)]. Returns mean f1_macro."""
+def evaluate_slice(labels_data, fraction, device):
+    """KFold cross-validation on labels_data.iloc[:int(n*fraction)].
+    For each fold: trains a fresh model on 4/5, tests on 1/5. Returns mean f1_macro."""
     n = len(labels_data)
     subset = labels_data.iloc[:int(n * fraction)].reset_index(drop=True)
 
     kf = KFold(n_splits=N_SPLITS, shuffle=False)
     f1_scores = []
-    for _, test_idx in kf.split(subset):
-        test_df = subset.iloc[test_idx]
+    for fold, (train_idx, test_idx) in enumerate(kf.split(subset)):
+        train_df = subset.iloc[train_idx].reset_index(drop=True)
+        test_df = subset.iloc[test_idx].reset_index(drop=True)
+
+        model = IndividualiArchitektura(num_classes=3)
+        model, _ = train_model(
+            model=model,
+            model_name=f"kfold_fold{fold}",
+            train_df=train_df,
+            val_df=test_df,
+            img_dir='LD2_dataset/images',
+            epochs=10,
+            batch_size=64,
+            lr=0.001,
+            device=device,
+            save_history=False
+        )
+
         metrics = test_model(
             model=model,
-            model_name="IndividualiArchitektura",
+            model_name=f"kfold_fold{fold}",
             metrics_save_dir=None,
             plots_save_dir=None,
             test_df=test_df,
@@ -47,13 +64,6 @@ def main():
     device = torch.device('mps' if torch.backends.mps.is_available() else 'cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Using device: {device}")
 
-    model = load_trained_model(
-        model_class=IndividualiArchitektura,
-        weights_path='model_params/IndividualiArchitektura_best_weights.pth',
-        num_classes=3,
-        device=device,
-    )
-
     results = {}
     iterations = 0
     first_above = None
@@ -65,7 +75,7 @@ def main():
             break
         p = step / 10
         print(f"\n[Iter {iterations + 1}/{MAX_ITERATIONS}] Evaluating {int(p * 100)}% of data ({int(len(labels_data) * p)} rows)...")
-        avg_f1 = evaluate_slice(model, labels_data, p, device)
+        avg_f1 = evaluate_slice(labels_data, p, device)
         key = f"{int(p * 100)}_percent_f1_score"
         results[key] = avg_f1
         iterations += 1
@@ -85,7 +95,7 @@ def main():
         while iterations < MAX_ITERATIONS:
             mid = (low + high) / 2
             print(f"\n[Iter {iterations + 1}/{MAX_ITERATIONS}] Evaluating {mid * 100:.1f}% ({int(len(labels_data) * mid)} rows)...")
-            avg_f1 = evaluate_slice(model, labels_data, mid, device)
+            avg_f1 = evaluate_slice(labels_data, mid, device)
             key = f"{mid * 100:.1f}_percent_f1_score"
             results[key] = avg_f1
             iterations += 1
