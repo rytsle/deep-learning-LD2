@@ -14,3 +14,4 @@ model_params/
 *.pkl
 variantai/
 visualizations/
+custom_data/
