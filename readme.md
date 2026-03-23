@@ -1,0 +1,1 @@
+pandoc ataskaita.md -o ataskaita.pdf --pdf-engine=xelatex -V geometry:margin=2cm -V fontsize=12pt
